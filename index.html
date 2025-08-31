@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Next-Gen Music Player</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            @apply flex items-center justify-center min-h-screen p-4 overflow-hidden relative;
+            background: linear-gradient(135deg, #1f1c2c, #4a415a, #2c293d, #14131d);
+            background-size: 400% 400%;
+            animation: gradient-animation 15s ease infinite;
+            transition: background-color 0.5s ease;
+        }
+
+        .light-theme {
+            background: linear-gradient(135deg, #f0f0f0, #e0e0e0, #f8f8f8, #ffffff);
+            background-size: 400% 400%;
+            animation: gradient-animation 15s ease infinite;
+        }
+
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Glassmorphism Effect */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: background 0.5s ease, border-color 0.5s ease;
+        }
+        .light-theme .glass-card {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        /* Neon Glow Effect */
+        .neon-glow {
+            text-shadow: 0 0 5px #0ff, 0 0 10px #0ff, 0 0 15px #0ff;
+        }
+        .light-theme .neon-glow {
+            text-shadow: 0 0 5px #00f, 0 0 10px #00f, 0 0 15px #00f;
+        }
+
+        /* Album Art Rotation */
+        .rotate-animation {
+            animation: rotate 15s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Custom Progress Bar */
+        #progress-bar {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            outline: none;
+            transition: all 0.2s ease-in-out;
+        }
+        .light-theme #progress-bar {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        #progress-bar::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            background: #0ff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 5px #0ff, 0 0 10px #0ff;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .light-theme #progress-bar::-webkit-slider-thumb {
+            background: #00f;
+            box-shadow: 0 0 5px #00f, 0 0 10px #00f;
+        }
+        #progress-bar:hover::-webkit-slider-thumb {
+            background: #fff;
+        }
+        .light-theme #progress-bar:hover::-webkit-slider-thumb {
+            background: #000;
+        }
+
+        #progress-bar::-moz-range-thumb {
+            width: 15px;
+            height: 15px;
+            background: #0ff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 5px #0ff, 0 0 10px #0ff;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .light-theme #progress-bar::-moz-range-thumb {
+            background: #00f;
+            box-shadow: 0 0 5px #00f, 0 0 10px #00f;
+        }
+        #progress-bar:hover::-moz-range-thumb {
+            background: #fff;
+        }
+        .light-theme #progress-bar:hover::-moz-range-thumb {
+            background: #000;
+        }
+
+        /* Scrollbar styling */
+        .playlist-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .playlist-scroll::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        .light-theme .playlist-scroll::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+        .playlist-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        /* Volume Slider */
+        #volume-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 80px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+        }
+        .light-theme #volume-slider {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        #volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #0ff;
+            border-radius: 50%;
+            box-shadow: 0 0 3px #0ff, 0 0 6px #0ff;
+        }
+        .light-theme #volume-slider::-webkit-slider-thumb {
+            background: #00f;
+            box-shadow: 0 0 3px #00f, 0 0 6px #00f;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 antialiased">
+
+    <!-- Theme Toggle Button -->
+    <button id="theme-toggle-btn" class="absolute top-4 right-4 p-2 rounded-full glass-card hover:scale-110 transition-transform duration-200">
+        <svg id="moon-icon" class="w-6 h-6 text-white" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-moon">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+        <svg id="sun-icon" class="hidden w-6 h-6 text-yellow-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-sun">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+    </button>
+
+    <!-- Main App Container -->
+    <main class="w-full max-w-7xl flex flex-col lg:flex-row items-start justify-center gap-8 lg:p-12 p-4">
+
+        <!-- Music Player Card -->
+        <div id="player-card" class="glass-card w-full lg:w-2/3 p-8 rounded-3xl shadow-lg flex flex-col items-center justify-center text-center transition-all duration-500 ease-in-out transform hover:scale-105">
+            <div class="relative w-full max-w-sm mb-8">
+                <img id="album-art" src="https://placehold.co/400x400/2c293d/0ff?text=Album+Art" alt="Album Art" class="w-full h-auto rounded-3xl shadow-lg border border-gray-500 transition-all duration-500 ease-in-out">
+            </div>
+
+            <!-- Song Info -->
+            <div class="mb-6">
+                <h2 id="song-title" class="text-3xl font-bold mb-1 neon-glow">Loading...</h2>
+                <p id="artist-name" class="text-sm text-gray-400">Loading...</p>
+                <p id="album-name" class="text-xs text-gray-500 mt-1">Loading...</p>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full mb-6">
+                <input type="range" id="progress-bar" value="0" step="1">
+                <div class="flex justify-between text-xs mt-2 text-gray-400 font-mono">
+                    <span id="current-time">0:00</span>
+                    <span id="total-time">0:00</span>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4 text-2xl w-full">
+                <div class="flex items-center justify-center gap-6">
+                    <button id="shuffle-btn" class="p-2 text-gray-400 hover:text-white transition-colors duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-shuffle"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+                    </button>
+                    <button id="prev-btn" class="p-2 text-gray-400 hover:text-white transition-colors duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-skip-back"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+                    </button>
+                    <button id="play-pause-btn" class="w-16 h-16 rounded-full flex items-center justify-center transition-all duration-200 ease-in-out transform hover:scale-110 shadow-lg text-white">
+                        <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-play">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        <svg id="pause-icon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-pause">
+                            <rect x="6" y="4" width="4" height="16"></rect>
+                            <rect x="14" y="4" width="4" height="16"></rect>
+                        </svg>
+                    </button>
+                    <button id="next-btn" class="p-2 text-gray-400 hover:text-white transition-colors duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-skip-forward"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+                    </button>
+                    <button id="repeat-btn" class="p-2 text-gray-400 hover:text-white transition-colors duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-repeat"><polyline points="17 1 21 5 17 9"></polyline><path d="M21 5H4a4 4 0 0 0 0 8h1"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M3 19h17a4 4 0 0 0 0-8h-1"></path></svg>
+                    </button>
+                </div>
+                <!-- Volume Control -->
+                <div class="flex items-center gap-2 mt-4 md:mt-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-volume-2 text-gray-400">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                    <input type="range" id="volume-slider" min="0" max="100" value="100" class="w-24">
+                </div>
+            </div>
+        </div>
+
+        <!-- Playlist Panel -->
+        <div id="playlist" class="glass-card w-full lg:w-1/3 p-6 rounded-3xl shadow-lg mt-8 lg:mt-0 transition-all duration-500 ease-in-out transform hover:scale-105 overflow-hidden">
+            <h3 class="text-xl font-bold mb-4 border-b pb-2 border-gray-500/30">Playlist</h3>
+            <div id="song-list" class="space-y-4 h-full max-h-96 playlist-scroll overflow-y-auto">
+                <!-- Song items will be dynamically inserted here by JavaScript -->
+            </div>
+            
+            <div class="mt-8 border-t pt-4 border-gray-500/30">
+                <h4 class="text-lg font-bold mb-2">Add Your Own Music</h4>
+                <div class="flex flex-col gap-4">
+                    <input type="text" id="public-link-input" placeholder="Paste a public link (e.g., .mp3)" class="w-full p-2 rounded-lg bg-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+                    <input type="text" id="custom-title-input" placeholder="Song Title" class="w-full p-2 rounded-lg bg-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+                    <input type="text" id="custom-artist-input" placeholder="Artist Name" class="w-full p-2 rounded-lg bg-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+                    <input type="text" id="custom-image-input" placeholder="Image Name (e.g., My Album)" class="w-full p-2 rounded-lg bg-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+                    <label for="file-input" class="flex items-center justify-center w-full p-3 rounded-lg border border-dashed border-white/30 text-white/70 cursor-pointer hover:bg-white/10 transition-colors duration-200">
+                        <span class="mr-2">Upload a music file</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-upload-cloud"><polyline points="16 16 12 12 8 16"></polyline><line x1="12" y1="12" x2="12" y2="21"></line><path d="M20.39 18.39A5 5 0 0 0 18 10h-1.26A8 8 0 1 0 3 16.3"></path><polyline points="16 16 12 12 8 16"></polyline></svg>
+                    </label>
+                    <input type="file" id="file-input" class="hidden" accept="audio/*">
+                    <button id="add-song-btn" class="w-full p-3 rounded-lg font-semibold transition-all duration-300 ease-in-out bg-blue-600 hover:bg-blue-700 shadow-md transform hover:scale-105">
+                        Add to Playlist
+                    </button>
+                    <p id="message-area" class="text-sm text-center mt-2"></p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Custom Modal for Confirmation -->
+    <div id="confirmation-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="glass-card p-6 rounded-lg text-center max-w-sm w-full">
+            <p class="mb-4 text-white">Are you sure you want to delete this song?</p>
+            <div class="flex justify-center gap-4">
+                <button id="confirm-delete-btn" class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition-colors duration-200 text-white font-semibold">Yes, Delete</button>
+                <button id="cancel-delete-btn" class="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-700 transition-colors duration-200 text-white font-semibold">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Song Data ---
+            const songs = [
+                {
+                    title: "Synthwave Dreams",
+                    artist: "Digital Horizon",
+                    album: "Cosmic Sounds",
+                    audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+                    imageSrc: "https://placehold.co/400x400/ff0080/fff?text=Synthwave"
+                },
+                {
+                    title: "Starlight",
+                    artist: "Aetheria",
+                    album: "Galactic Groove",
+                    audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+                    imageSrc: "https://placehold.co/400x400/8000ff/fff?text=Starlight"
+                },
+                {
+                    title: "Cyberpunk Alley",
+                    artist: "Neon Echo",
+                    album: "City of Light",
+                    audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+                    imageSrc: "https://placehold.co/400x400/00ffff/fff?text=Cyberpunk"
+                },
+                {
+                    title: "Future Noir",
+                    artist: "Crimson Flux",
+                    album: "Neon Nights",
+                    audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+                    imageSrc: "https://placehold.co/400x400/ff00ff/fff?text=Future+Noir"
+                },
+                {
+                    title: "Infinity Loop",
+                    artist: "Cosmic Glide",
+                    album: "SoundHelix Vol. 1",
+                    audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
+                    imageSrc: "https://placehold.co/400x400/0080ff/fff?text=Infinity"
+                },
+                {
+                    title: "Kudmayi",
+                    artist: "Shahid Mallya",
+                    album: "Tum Se Single",
+                    audioSrc: "https://paglasongs.com/files/download/id/14933",
+                    imageSrc: "https://raw.githubusercontent.com/developergtm24/music-web/main/image%20musuic.jpg"
+                },
+                {
+                    title: "Tum Se",
+                    artist: "Sachin-Jigar",
+                    album: "Kudmayi Single",
+                    audioSrc: "https://pagalsongs.com.in/siteuploads/files/sfd3/1494/Tum%20Se-(PagalSongs.Com.IN).mp3",
+                    imageSrc: "https://raw.githubusercontent.com/developergtm24/music-web/main/image%20musuic.jpg"
+                }
+            ];
+
+            // --- DOM Elements ---
+            const albumArt = document.getElementById('album-art');
+            const songTitle = document.getElementById('song-title');
+            const artistName = document.getElementById('artist-name');
+            const albumNameEl = document.getElementById('album-name');
+            const progressBar = document.getElementById('progress-bar');
+            const currentTimeEl = document.getElementById('current-time');
+            const totalTimeEl = document.getElementById('total-time');
+            const playPauseBtn = document.getElementById('play-pause-btn');
+            const playIcon = document.getElementById('play-icon');
+            const pauseIcon = document.getElementById('pause-icon');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const shuffleBtn = document.getElementById('shuffle-btn');
+            const repeatBtn = document.getElementById('repeat-btn');
+            const songListEl = document.getElementById('song-list');
+            
+            // Add Music elements
+            const publicLinkInput = document.getElementById('public-link-input');
+            const customTitleInput = document.getElementById('custom-title-input');
+            const customArtistInput = document.getElementById('custom-artist-input');
+            const customImageInput = document.getElementById('custom-image-input');
+            const fileInput = document.getElementById('file-input');
+            const addSongBtn = document.getElementById('add-song-btn');
+            const messageArea = document.getElementById('message-area');
+
+            // New elements for theme and volume
+            const themeToggleBtn = document.getElementById('theme-toggle-btn');
+            const sunIcon = document.getElementById('sun-icon');
+            const moonIcon = document.getElementById('moon-icon');
+            const volumeSlider = document.getElementById('volume-slider');
+
+            // Delete Modal elements
+            const confirmationModal = document.getElementById('confirmation-modal');
+            const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+            const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+
+            // --- App State ---
+            const audio = new Audio();
+            let currentSongIndex = 0;
+            let isPlaying = false;
+            let isRepeating = false;
+            let isShuffling = false;
+
+            // --- Functions ---
+            const loadSong = (songIndex) => {
+                const song = songs[songIndex];
+                if (!song) {
+                    // Handle empty playlist
+                    audio.src = '';
+                    albumArt.src = 'https://placehold.co/400x400/2c293d/0ff?text=Album+Art';
+                    songTitle.textContent = 'Next-Gen Player'; // Default player name
+                    artistName.textContent = '';
+                    albumNameEl.textContent = '';
+                    progressBar.value = 0;
+                    currentTimeEl.textContent = '0:00';
+                    totalTimeEl.textContent = '0:00';
+                    isPlaying = false;
+                    updatePlayPauseButton();
+                    toggleAlbumArtAnimation();
+                    return;
+                }
+
+                // Apply smooth transitions to song info changes
+                songTitle.style.opacity = '0';
+                artistName.style.opacity = '0';
+                albumNameEl.style.opacity = '0';
+                albumArt.style.opacity = '0';
+
+                setTimeout(() => {
+                    audio.src = song.audioSrc;
+                    albumArt.src = song.imageSrc;
+                    songTitle.textContent = song.title;
+                    artistName.textContent = song.artist;
+                    albumNameEl.textContent = song.album;
+                    progressBar.value = 0;
+                    currentTimeEl.textContent = '0:00';
+                    totalTimeEl.textContent = '0:00';
+                    updatePlaylistUI(songIndex);
+
+                    // Fade in new song info
+                    songTitle.style.opacity = '1';
+                    artistName.style.opacity = '1';
+                    albumNameEl.style.opacity = '1';
+                    albumArt.style.opacity = '1';
+                }, 300);
+            };
+
+            const togglePlayPause = () => {
+                if (audio.src === '' || songs.length === 0) {
+                    messageArea.textContent = 'Playlist is empty. Add a song to play!';
+                    messageArea.style.color = 'red';
+                    return;
+                }
+                if (isPlaying) {
+                    audio.pause();
+                } else {
+                    audio.play().catch(e => {
+                        console.error("Audio playback failed:", e);
+                        messageArea.textContent = 'Playback failed. Please try again.';
+                        messageArea.style.color = 'red';
+                    });
+                }
+                isPlaying = !isPlaying;
+                updatePlayPauseButton();
+                toggleAlbumArtAnimation();
+            };
+
+            const updatePlayPauseButton = () => {
+                if (isPlaying) {
+                    playIcon.classList.add('hidden');
+                    pauseIcon.classList.remove('hidden');
+                    playPauseBtn.style.background = 'linear-gradient(45deg, #0ff, #ff0080)';
+                    playPauseBtn.style.boxShadow = '0 0 15px rgba(0, 255, 255, 0.5)';
+                } else {
+                    playIcon.classList.remove('hidden');
+                    pauseIcon.classList.add('hidden');
+                    playPauseBtn.style.background = 'linear-gradient(45deg, #0080ff, #8000ff)';
+                    playPauseBtn.style.boxShadow = '0 0 15px rgba(0, 128, 255, 0.5)';
+                }
+            };
+
+            const toggleAlbumArtAnimation = () => {
+                if (isPlaying) {
+                    albumArt.classList.add('rotate-animation');
+                } else {
+                    albumArt.classList.remove('rotate-animation');
+                }
+            };
+
+            const playNextSong = () => {
+                if (songs.length === 0) return;
+                if (isShuffling) {
+                    currentSongIndex = Math.floor(Math.random() * songs.length);
+                } else {
+                    currentSongIndex = (currentSongIndex + 1) % songs.length;
+                }
+                loadSong(currentSongIndex);
+                isPlaying = true;
+                updatePlayPauseButton();
+                toggleAlbumArtAnimation();
+            };
+
+            const playPrevSong = () => {
+                if (songs.length === 0) return;
+                if (isShuffling) {
+                    currentSongIndex = Math.floor(Math.random() * songs.length);
+                } else {
+                    currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+                }
+                loadSong(currentSongIndex);
+                isPlaying = true;
+                updatePlayPauseButton();
+                toggleAlbumArtAnimation();
+            };
+
+            const formatTime = (seconds) => {
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = Math.floor(seconds % 60);
+                return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+            };
+
+            const updateProgress = () => {
+                const { currentTime, duration } = audio;
+                if (!isNaN(duration)) {
+                    progressBar.value = (currentTime / duration) * 100;
+                    currentTimeEl.textContent = formatTime(currentTime);
+                    totalTimeEl.textContent = formatTime(duration);
+                }
+            };
+
+            const setProgress = (e) => {
+                const width = progressBar.clientWidth;
+                const clickX = e.offsetX;
+                const duration = audio.duration;
+                audio.currentTime = (clickX / width) * duration;
+            };
+
+            const toggleShuffle = () => {
+                isShuffling = !isShuffling;
+                shuffleBtn.classList.toggle('text-white', isShuffling);
+                shuffleBtn.classList.toggle('text-gray-400', !isShuffling);
+            };
+
+            const toggleRepeat = () => {
+                isRepeating = !isRepeating;
+                repeatBtn.classList.toggle('text-white', isRepeating);
+                repeatBtn.classList.toggle('text-gray-400', !isRepeating);
+            };
+
+            const handleEnded = () => {
+                if (isRepeating) {
+                    audio.play();
+                } else {
+                    playNextSong();
+                }
+            };
+
+            const createPlaylist = () => {
+                songListEl.innerHTML = ''; // Clear existing playlist items
+                songs.forEach((song, index) => {
+                    const songItem = document.createElement('div');
+                    songItem.classList.add('flex', 'items-center', 'gap-4', 'p-3', 'rounded-xl', 'cursor-pointer', 'transition-all', 'duration-200', 'hover:bg-white/10', 'group');
+                    songItem.innerHTML = `
+                        <img src="${song.imageSrc}" alt="${song.title}" class="w-12 h-12 rounded-lg">
+                        <div class="flex flex-col flex-1">
+                            <span class="text-sm font-semibold text-white/90">${song.title}</span>
+                            <span class="text-xs text-white/50">${song.artist}</span>
+                        </div>
+                        <button class="delete-btn opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x-circle text-red-500 hover:text-red-400 transition-colors">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="15" y1="9" x2="9" y2="15"></line>
+                                <line x1="9" y1="9" x2="15" y2="15"></line>
+                            </svg>
+                        </button>
+                    `;
+                    songItem.addEventListener('click', () => {
+                        currentSongIndex = index;
+                        loadSong(currentSongIndex);
+                        isPlaying = true;
+                        updatePlayPauseButton();
+                        toggleAlbumArtAnimation();
+                    });
+                    // Add event listener for the delete button
+                    const deleteBtn = songItem.querySelector('.delete-btn');
+                    deleteBtn.addEventListener('click', (event) => {
+                        event.stopPropagation(); // Prevents the song click event from firing
+                        showConfirmationModal(index);
+                    });
+                    songListEl.appendChild(songItem);
+                });
+                updatePlaylistUI(currentSongIndex);
+            };
+
+            const showConfirmationModal = (indexToDelete) => {
+                confirmationModal.classList.remove('hidden');
+                confirmDeleteBtn.dataset.index = indexToDelete;
+            };
+
+            const deleteSong = (index) => {
+                songs.splice(index, 1);
+                // Adjust current song index if necessary
+                if (currentSongIndex === index) {
+                    if (songs.length > 0) {
+                        currentSongIndex = Math.min(index, songs.length - 1);
+                        loadSong(currentSongIndex);
+                    } else {
+                        currentSongIndex = 0;
+                        loadSong(currentSongIndex); // Loads empty state
+                    }
+                } else if (currentSongIndex > index) {
+                    currentSongIndex--;
+                }
+                createPlaylist();
+            };
+
+            const updatePlaylistUI = (activeSongIndex) => {
+                const items = songListEl.children;
+                for (let i = 0; i < items.length; i++) {
+                    if (i === activeSongIndex) {
+                        items[i].classList.add('bg-white/20');
+                    } else {
+                        items[i].classList.remove('bg-white/20');
+                    }
+                }
+            };
+
+            const handleAddSong = (e) => {
+                e.preventDefault();
+                messageArea.textContent = ''; // Clear previous messages
+                const publicLink = publicLinkInput.value.trim();
+                const customTitle = customTitleInput.value.trim();
+                const customArtist = customArtistInput.value.trim();
+                const customImageTitle = customImageInput.value.trim() || 'Web Link';
+                const file = fileInput.files[0];
+
+                if (publicLink || file) {
+                    let newSong = {};
+                    if (file) {
+                        // Handle local file upload
+                        newSong = {
+                            title: customTitle || file.name.split('.')[0],
+                            artist: customArtist || 'Local Upload',
+                            album: 'Custom Uploads',
+                            audioSrc: URL.createObjectURL(file),
+                            imageSrc: "https://placehold.co/400x400/2c293d/0ff?text=Local+File"
+                        };
+                    } else if (publicLink) {
+                        // Handle public link
+                        newSong = {
+                            title: customTitle || 'Unknown Title',
+                            artist: customArtist || 'Unknown Artist',
+                            album: 'Custom Uploads',
+                            audioSrc: publicLink,
+                            imageSrc: `https://placehold.co/400x400/2c293d/0ff?text=${customImageTitle}`
+                        };
+                    }
+                    songs.push(newSong);
+                    createPlaylist();
+                    messageArea.textContent = `${newSong.title} added successfully!`;
+                    messageArea.style.color = '#0ff';
+                    // Clear inputs
+                    publicLinkInput.value = '';
+                    customTitleInput.value = '';
+                    customArtistInput.value = '';
+                    customImageInput.value = '';
+                    fileInput.value = '';
+                } else {
+                    messageArea.textContent = 'Please provide a link or upload a file.';
+                    messageArea.style.color = 'red';
+                }
+            };
+            
+            // --- Theme Functions ---
+            const toggleTheme = () => {
+                const isLightTheme = document.body.classList.toggle('light-theme');
+                localStorage.setItem('theme', isLightTheme ? 'light' : 'dark');
+                updateThemeIcons(isLightTheme);
+            };
+
+            const updateThemeIcons = (isLightTheme) => {
+                if (isLightTheme) {
+                    moonIcon.classList.add('hidden');
+                    sunIcon.classList.remove('hidden');
+                    document.body.classList.remove('text-gray-100');
+                    document.body.classList.add('text-gray-900');
+                } else {
+                    moonIcon.classList.remove('hidden');
+                    sunIcon.classList.add('hidden');
+                    document.body.classList.remove('text-gray-900');
+                    document.body.classList.add('text-gray-100');
+                }
+            };
+
+            const loadTheme = () => {
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme === 'light') {
+                    document.body.classList.add('light-theme');
+                    updateThemeIcons(true);
+                } else {
+                    updateThemeIcons(false);
+                }
+            };
+
+            // --- Event Listeners ---
+            playPauseBtn.addEventListener('click', togglePlayPause);
+            nextBtn.addEventListener('click', playNextSong);
+            prevBtn.addEventListener('click', playPrevSong);
+            shuffleBtn.addEventListener('click', toggleShuffle);
+            repeatBtn.addEventListener('click', toggleRepeat);
+
+            // Audio events
+            audio.addEventListener('timeupdate', updateProgress);
+            audio.addEventListener('ended', handleEnded);
+            progressBar.addEventListener('input', setProgress);
+            audio.addEventListener('loadeddata', () => {
+                if (isPlaying) {
+                    audio.play().catch(e => {
+                        console.error("Audio playback failed:", e);
+                    });
+                }
+            });
+
+            // Add song events
+            addSongBtn.addEventListener('click', handleAddSong);
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files.length > 0) {
+                    publicLinkInput.disabled = true;
+                    publicLinkInput.placeholder = "Link input disabled";
+                } else {
+                    publicLinkInput.disabled = false;
+                    publicLinkInput.placeholder = "Paste a public link (e.g., .mp3)";
+                }
+            });
+            publicLinkInput.addEventListener('input', () => {
+                if (publicLinkInput.value.trim() !== '') {
+                    fileInput.disabled = true;
+                } else {
+                    fileInput.disabled = false;
+                }
+            });
+            
+            // Theme and Volume events
+            themeToggleBtn.addEventListener('click', toggleTheme);
+            volumeSlider.addEventListener('input', (e) => {
+                audio.volume = e.target.value / 100;
+            });
+
+            // Delete Modal events
+            confirmDeleteBtn.addEventListener('click', () => {
+                const indexToDelete = parseInt(confirmDeleteBtn.dataset.index);
+                deleteSong(indexToDelete);
+                confirmationModal.classList.add('hidden');
+            });
+            cancelDeleteBtn.addEventListener('click', () => {
+                confirmationModal.classList.add('hidden');
+            });
+
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.key === ' ' || e.key === 'Spacebar') {
+                    e.preventDefault();
+                    togglePlayPause();
+                } else if (e.key === 'ArrowRight') {
+                    playNextSong();
+                } else if (e.key === 'ArrowLeft') {
+                    playPrevSong();
+                }
+            });
+
+            // --- Initial Setup ---
+            loadTheme();
+            loadSong(currentSongIndex);
+            updatePlayPauseButton();
+            createPlaylist();
+        });
+    </script>
+</body>
+</html>
